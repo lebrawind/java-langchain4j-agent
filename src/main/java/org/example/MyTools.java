@@ -14,9 +14,8 @@ public class MyTools {
         return a + b;
     }
     @Tool("查询指定城市的天气")
-    public String getWeather(@P("北京") String city) {
+    public String getWeather(@P("要查询天气的城市名称") String city) {
         System.out.println(">>> 工具被调用了！查询天气: " + city);
-        // 这里随便返回一个假数据，我们主要是为了测试大模型会不会调用它
-        return city + "今天晴天，气温25度。";
+        return city + "晴，25度，微风";
     }
 }

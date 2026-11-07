@@ -20,7 +20,7 @@ public class MyTools {
 
     @Tool("计算两数之和，当用户询问加法计算时使用")
     double Sum(double a , double b){
-        System.out.println(">>> 工具被调用了！计算两数之和");
+        log.info(">>> 工具被调用了！计算两数之和");
         return a + b;
     }
     @Tool("查询指定城市的天气")
@@ -31,7 +31,7 @@ public class MyTools {
         }
         for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
             try {
-                System.out.println(">>> 工具被调用了！查询天气: " + city);
+                log.info(">>> 工具被调用了！查询天气: {}", city);
                 return city + "晴，25度，微风";
             } catch (Exception e) {
                 if (!(e instanceof TimeoutException)) {
@@ -41,7 +41,7 @@ public class MyTools {
                 boolean lastAttempt = attempt == MAX_RETRIES;
                 boolean overBudget = System.currentTimeMillis() - start > RETRY_BUDGET_MS;
                 long backoff = INITIAL_BACKOFF_MS * (attempt + 1);
-                System.out.println("第 " + (attempt + 1) + " 次尝试失败：" + e.getMessage());
+                log.info("第 {} 次尝试失败：{}", attempt + 1, e.getMessage());
                 if(lastAttempt || overBudget){
                     throw new RuntimeException("天气服务暂时不可用（已尝试 " + (attempt + 1) + " 次）：" + e.getMessage());
                 }
@@ -51,7 +51,7 @@ public class MyTools {
                     Thread.currentThread().interrupt();   // 恢复中断标志
                     throw new RuntimeException("重试被中断", ie);
                 }
-                System.out.println("等待" + backoff + "ms 后重试");
+                log.info("等待 {}ms 后重试", backoff);
             }
         }
         throw new IllegalStateException("unreachable");

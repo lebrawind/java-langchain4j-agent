@@ -4,6 +4,8 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.ChatMessageDeserializer;
 import dev.langchain4j.data.message.ChatMessageSerializer;
 import dev.langchain4j.store.memory.chat.ChatMemoryStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -15,12 +17,14 @@ import java.util.List;
 public class MysqlMemoryStore implements ChatMemoryStore {
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    private static final Logger log = LoggerFactory.getLogger(MysqlMemoryStore.class);
 
     @Override
     public void updateMessages(Object memoryId, List<ChatMessage> messages) {
         String id = memoryId.toString();
         String json = ChatMessageSerializer.messagesToJson(messages);
         String sql = "INSERT INTO chat_memory (id, messages) VALUES (?, ?) ON DUPLICATE KEY UPDATE messages = ?";
+        log.info("写入窗口 [{}]：{} 条消息", id, messages.size());
         jdbcTemplate.update(sql, id, json, json);
     }
 

@@ -41,7 +41,7 @@ public class MyTools {
 
     @Tool("计算两数之和，当用户询问加法计算时使用")
     double Sum(double a , double b){
-        log.info(">>> 工具被调用了！计算两数之和");
+        log.debug(">>> 工具被调用了！计算两数之和");
         return a + b;
     }
     @Tool("查询指定城市的天气")
@@ -78,7 +78,7 @@ public class MyTools {
                 boolean lastAttempt = attempt == MAX_RETRIES;
                 boolean overBudget = System.currentTimeMillis() - start > RETRY_BUDGET_MS;
                 long backoff = INITIAL_BACKOFF_MS * (attempt + 1);
-                log.info("第 {} 次尝试失败：{}", attempt + 1, e.getMessage());
+                log.debug("第 {} 次尝试失败：{}", attempt + 1, e.getMessage());
                 if(lastAttempt || overBudget){
                     throw new RuntimeException("天气服务暂时不可用（已尝试 " + (attempt + 1) + " 次）：" + e.getMessage());
                 }
@@ -88,7 +88,7 @@ public class MyTools {
                     Thread.currentThread().interrupt();   // 恢复中断标志
                     throw new RuntimeException("重试被中断", ie);
                 }
-                log.info("等待 {}ms 后重试", backoff);
+                log.debug("等待 {}ms 后重试", backoff);
             }
         }
         throw new IllegalStateException("unreachable");

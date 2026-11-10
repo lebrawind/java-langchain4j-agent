@@ -1,5 +1,6 @@
 package org.example;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.data.embedding.Embedding;
@@ -60,5 +61,42 @@ public class RagService {
         }
         log.info("文档 [{}] 入库完成：{} 块", fileName, chunks.size());
         return chunks.size();
+    }
+
+    private record ScoredChunk(String content, double score) { }
+
+    public List<String> search(String question, int topK) {
+        float[] questionVec = embeddingModel.embed(question).content().vector();
+        List<ScoredChunk> scored = jdbcTemplate.query(
+                "SELECT content, embedding FROM document_chunk",
+                (rs, rowNum) -> {
+                    String content = rs.getString("content");
+                    float[] vec;
+                    try {
+                        vec = objectMapper.readValue(rs.getString("embedding"), float[].class);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException("向量解析失败：" + e.getMessage(), e);
+                    }
+                    return new ScoredChunk(content, cosine(questionVec, vec));
+                });
+        scored.sort((a, b) -> Double.compare(b.score(), a.score()));
+        List<String> result = new ArrayList<>();
+        for (int i = 0; i < Math.min(topK, scored.size()); i++) {
+            result.add(scored.get(i).content());
+        }
+        return result;
+    }
+
+    private double cosine(float[] a, float[] b) {
+        double dot = 0, normA = 0, normB = 0;
+        for (int i = 0; i < a.length; i++) {
+            dot   += a[i] * b[i];
+            normA += (double) a[i] * a[i];
+            normB += (double) b[i] * b[i];
+        }
+        if (normA == 0 || normB == 0) {
+            return 0;
+        }
+        return dot / (Math.sqrt(normA) * Math.sqrt(normB));
     }
 }

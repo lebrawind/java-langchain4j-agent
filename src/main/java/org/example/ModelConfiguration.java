@@ -41,15 +41,16 @@ public class ModelConfiguration {
     }
 
     @Bean
-    public Assistant assistant(OpenAiChatModel chatModel,OpenAiStreamingChatModel streamingChatModel, MyTools  myTools,MysqlMemoryStore mysqlMemoryStore) {
+    public Assistant assistant(OpenAiChatModel chatModel,OpenAiStreamingChatModel streamingChatModel, MyTools  myTools,MysqlMemoryStore mysqlMemoryStore, RagService ragService) {
         return AiServices.builder(Assistant.class)
                 .chatModel(chatModel)
                 .streamingChatModel(streamingChatModel)
                 .tools(myTools)
+                .contentRetriever(ragService.asRetriever())
                 .toolExecutionErrorHandler(ToolExecutionErrorHandler.sendExceptionMessageToLlm())
                 .chatMemoryProvider(memoryId ->
                         MessageWindowChatMemory.builder()
-                                .id(memoryId) // 绑定 ID
+                                .id(memoryId)
                                 .maxMessages(10)
                                 .chatMemoryStore(mysqlMemoryStore)
                                 .build()

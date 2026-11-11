@@ -6,6 +6,8 @@ import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.embedding.onnx.bgesmallzhv15.BgeSmallZhV15EmbeddingModel;
+import dev.langchain4j.rag.content.Content;
+import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import org.apache.catalina.mapper.Mapper;
 import org.slf4j.ILoggerFactory;
@@ -98,5 +100,11 @@ public class RagService {
             return 0;
         }
         return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+    }
+
+    public ContentRetriever asRetriever() {
+        return query -> search(query.text(), 3).stream()
+                .map(Content::from)
+                .toList();
     }
 }

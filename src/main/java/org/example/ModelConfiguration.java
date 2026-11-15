@@ -8,7 +8,6 @@ import dev.langchain4j.model.chat.listener.ChatModelResponseContext;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.tool.ToolArgumentsErrorHandler;
 import dev.langchain4j.service.tool.ToolExecutionErrorHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +20,7 @@ import java.util.List;
 public class ModelConfiguration {
     @Bean
     public OpenAiChatModel chatModel() {
-        String apiKey = System.getenv("DEEPSEEK_API_KEY");;
+        String apiKey = System.getenv("DEEPSEEK_API_KEY");
         return OpenAiChatModel.builder()
                 .baseUrl("https://api.deepseek.com/v1")
                 .apiKey(apiKey)
@@ -32,7 +31,7 @@ public class ModelConfiguration {
 
     @Bean
     public OpenAiStreamingChatModel streamingChatModel() {
-        String apiKey = System.getenv("DEEPSEEK_API_KEY");;
+        String apiKey = System.getenv("DEEPSEEK_API_KEY");
         return OpenAiStreamingChatModel.builder()
                 .baseUrl("https://api.deepseek.com/v1")
                 .apiKey(apiKey)

@@ -2,7 +2,6 @@ package org.example;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,14 +9,16 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 
 @RestController
 public class AssistantController {
     private static final Logger log = LoggerFactory.getLogger(AssistantController.class);
 
-    @Autowired
-    Assistant assistant;
+    private final Assistant assistant;
+
+    public AssistantController(Assistant assistant) {
+        this.assistant = assistant;
+    }
 
     @GetMapping("/chat")
     public String chat(@RequestParam String message, @RequestParam(defaultValue = "default") String memoryId) {

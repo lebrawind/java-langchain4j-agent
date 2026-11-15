@@ -20,7 +20,10 @@ import java.util.concurrent.TimeoutException;
 
 @Component
 public class MyTools {
-    @Value("${amap.key}")
+    public MyTools(@Value("${amap.key}")String amapKey) {
+        this.amapKey = amapKey;
+    }
+
     private String amapKey;
     private static final Logger log = LoggerFactory.getLogger(MyTools.class);
     private static final int MAX_RETRIES = 2;
@@ -35,7 +38,9 @@ public class MyTools {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(3000);
         factory.setReadTimeout(5000);
-        return RestClient.builder().requestFactory(factory).build();
+        return RestClient.builder()
+                .requestFactory(factory)
+                .build();
     }
 
 

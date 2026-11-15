@@ -2,26 +2,22 @@ package org.example;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.embedding.onnx.bgesmallzhv15.BgeSmallZhV15EmbeddingModel;
 import dev.langchain4j.rag.content.Content;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
-import dev.langchain4j.store.embedding.EmbeddingMatch;
-import org.apache.catalina.mapper.Mapper;
-import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,13 +28,17 @@ public class RagService {
     private static final int  MAX_CHUNK_SIZE = 500;
     private static final int  HEAD_SPLIT_SIZE = 400;
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
+
+    public RagService(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final EmbeddingModel embeddingModel = new BgeSmallZhV15EmbeddingModel();
 
+    @Transactional(rollbackFor = Exception.class)
     public int ingest(String fileName)throws IOException{
-        jdbcTemplate.update("DELETE FROM document_chunk WHERE doc_name = ?",fileName);
         String content = Files.readString(Path.of("docs", fileName));
         List<String>chunks = new ArrayList<>();
         for(String paragraph : content.split("\n\n")){
@@ -56,6 +56,7 @@ public class RagService {
             segments.add(TextSegment.from(chunk));
         }
         List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
+        jdbcTemplate.update("DELETE FROM document_chunk WHERE doc_name = ?",fileName);
         for( int i = 0; i < chunks.size(); i++){
             String vectorJson = objectMapper.writeValueAsString(embeddings.get(i).vector());
             jdbcTemplate.update("INSERT INTO document_chunk (doc_name, content, embedding) VALUES (?, ?, ?)",
@@ -68,6 +69,9 @@ public class RagService {
     private record ScoredChunk(String content, double score) { }
 
     public List<String> search(String question, int topK) {
+        if (question == null || question.isBlank()) {
+            throw new IllegalArgumentException("查询内容不能为空");
+        }
         float[] questionVec = embeddingModel.embed(question).content().vector();
         List<ScoredChunk> scored = jdbcTemplate.query(
                 "SELECT content, embedding FROM document_chunk",

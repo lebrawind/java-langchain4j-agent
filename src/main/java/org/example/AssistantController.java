@@ -15,10 +15,13 @@ public class AssistantController {
     private static final Logger log = LoggerFactory.getLogger(AssistantController.class);
 
     private final Assistant assistant;
+    private final MysqlMemoryStore mysqlMemoryStore;
+    public AssistantController(Assistant assistant, MysqlMemoryStore mysqlMemoryStore) {
 
-    public AssistantController(Assistant assistant) {
         this.assistant = assistant;
+        this.mysqlMemoryStore = mysqlMemoryStore;
     }
+
 
     @GetMapping("/chat")
     public String chat(@RequestParam String message, @RequestParam(defaultValue = "default") String memoryId) {
@@ -61,5 +64,10 @@ public class AssistantController {
                 })
                 .start();
         return emitter;
+    }
+    @GetMapping("/chat/clear")
+    public String clear(@RequestParam(defaultValue = "default") String memoryId) {
+        mysqlMemoryStore.deleteMessages(memoryId);
+        return "会话记忆已清空";
     }
 }

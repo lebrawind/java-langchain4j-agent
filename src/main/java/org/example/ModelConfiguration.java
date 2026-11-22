@@ -8,6 +8,7 @@ import dev.langchain4j.model.chat.listener.ChatModelResponseContext;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.tool.ToolArgumentsErrorHandler;
 import dev.langchain4j.service.tool.ToolExecutionErrorHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +48,7 @@ public class ModelConfiguration {
                 .tools(myTools)
                 .contentRetriever(ragService.asRetriever())
                 .toolExecutionErrorHandler(ToolExecutionErrorHandler.sendExceptionMessageToLlm())
+                .toolArgumentsErrorHandler(ToolArgumentsErrorHandler.sendExceptionMessageToLlm())
                 .chatMemoryProvider(memoryId ->
                         MessageWindowChatMemory.builder()
                                 .id(memoryId)

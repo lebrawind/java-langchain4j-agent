@@ -22,10 +22,11 @@
 <div class="bar">
     <input id="input" placeholder="例如：查一下北京的天气" onkeydown="if(event.key==='Enter')send()">
     <button onclick="send()">发送</button>
+    <button onclick="newChat()">🆕 新对话</button>
 </div>
 <script>
     // 每次刷新页面生成新会话 ID —— 多用户隔离的现场演示
-    const memoryId = "web-" + Date.now();
+    let memoryId = "web-" + Date.now();
     const chat = document.getElementById("chat");
 
     function bubble(role) {
@@ -49,6 +50,12 @@
             if (e.data) { reply.textContent += e.data; chat.scrollTop = chat.scrollHeight; }
         };
         es.onerror = () => es.close();
+    }
+
+    function newChat() {
+        fetch(`/chat/clear?memoryId=${memoryId}`);
+        memoryId = "web-" + Date.now();
+        chat.innerHTML = "";
     }
 </script>
 </body>

@@ -28,7 +28,6 @@ public class RagService {
     private static final int  HEAD_SPLIT_SIZE = 400;
 
     private final JdbcTemplate jdbcTemplate;
-
     public RagService(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -56,11 +55,13 @@ public class RagService {
         }
         List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
         jdbcTemplate.update("DELETE FROM document_chunk WHERE doc_name = ?",fileName);
-        for( int i = 0; i < chunks.size(); i++){
-            String vectorJson = objectMapper.writeValueAsString(embeddings.get(i).vector());
-            jdbcTemplate.update("INSERT INTO document_chunk (doc_name, content, embedding) VALUES (?, ?, ?)",
-                    fileName, chunks.get(i), vectorJson);
+        List<Object[]> rows = new ArrayList<>();
+        for (int i = 0; i < chunks.size(); i++) {
+            rows.add(new Object[]{fileName, chunks.get(i),
+                    objectMapper.writeValueAsString(embeddings.get(i).vector())});
         }
+        jdbcTemplate.batchUpdate(
+                "INSERT INTO document_chunk (doc_name, content, embedding) VALUES (?, ?, ?)", rows);
         log.info("文档 [{}] 入库完成：{} 块", fileName, chunks.size());
         return chunks.size();
     }

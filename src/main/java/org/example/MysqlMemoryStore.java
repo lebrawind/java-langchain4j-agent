@@ -16,7 +16,6 @@ import java.util.List;
 public class MysqlMemoryStore implements ChatMemoryStore {
 
     private final JdbcTemplate jdbcTemplate;
-
     public MysqlMemoryStore(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
